@@ -94,7 +94,7 @@
   - 1 Enable
   - 0 Disable
 -->
-<ARMOR_EDIT>0</ARMOR_EDIT>
+<ARMOR_EDIT>1</ARMOR_EDIT>
 <!--
   ARMOR_DRAW - 是否绘制装甲板
   - 1 Enable
