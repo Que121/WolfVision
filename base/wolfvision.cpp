@@ -17,7 +17,7 @@ int main() {
   fmt::print("[{}] WolfVision config file path: {}\n", idntifier, CONFIG_FILE_PATH);
   cv::Mat src_img_, roi_img_;
   mindvision::VideoCapture* mv_capture_ = new mindvision::VideoCapture(
-    mindvision::CameraParam(0, mindvision::RESOLUTION_1280_X_800, mindvision::EXPOSURE_600));
+    mindvision::CameraParam(0, mindvision::RESOLUTION_1280_X_1024, mindvision::EXPOSURE_600));
 
   uart::SerialPort serial_ = uart::SerialPort(
     fmt::format("{}{}", CONFIG_FILE_PATH, "/serial/uart_serial_config.xml"));
@@ -31,7 +31,7 @@ int main() {
     fmt::format("{}{}", CONFIG_FILE_PATH, "/buff/basic_buff_config.xml"));
 
   basic_pnp::PnP pnp_ = basic_pnp::PnP(
-    fmt::format("{}{}", CONFIG_FILE_PATH, "/camera/mv_camera_config_407.xml"), fmt::format("{}{}", CONFIG_FILE_PATH, "/angle_solve/basic_pnp_config.xml"));
+    fmt::format("{}{}", CONFIG_FILE_PATH, "/camera/MV-LD-4-4M-G.xml"), fmt::format("{}{}", CONFIG_FILE_PATH, "/angle_solve/basic_pnp_config.xml"));
 
   onnx_inferring::model model_ = onnx_inferring::model(
     fmt::format("{}{}", SOURCE_PATH, "/module/ml/mnist-8.onnx"));
@@ -39,12 +39,12 @@ int main() {
   RecordMode::Record record_ = RecordMode::Record(
     fmt::format("{}{}", CONFIG_FILE_PATH, "/record/recordpath_save.yaml"),
         fmt::format("{}{}", CONFIG_FILE_PATH, "/record/record_packeg/record.avi"),
-        cv::Size(1280, 800));  // 记得修改分辨率
+        cv::Size(1280, 1024));  // 记得修改分辨率
   cv::VideoWriter vw_src;
   cv::FileStorage re_config_get(record_.video_save_path_, cv::FileStorage::READ);
   re_config_get["_PATH"] >> record_.path_;
   std::string save_path_ = "/record/";
-  vw_src.open(CONFIG_FILE_PATH+save_path_+ to_string(record_.path_) + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 66, cv::Size(1280, 800), true);
+  vw_src.open(CONFIG_FILE_PATH+save_path_+ to_string(record_.path_) + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 66, cv::Size(1280, 1024), true);
   basic_roi::RoI save_roi;
   fps::FPS       global_fps_;
 
