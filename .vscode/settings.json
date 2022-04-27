@@ -73,6 +73,6 @@
     },
     "editor.defaultFormatter": "ms-vscode.cpptools",
     "[cpp]": {
-        "editor.defaultFormatter": "ms-vscode.cpptools"
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
     },
 }

@@ -15,42 +15,59 @@
 
 namespace uart {
 
+// 串口通信
 SerialPort::SerialPort(std::string _serial_config) {
+  // 读写串口模块xml文件
   cv::FileStorage fs_serial(_serial_config, cv::FileStorage::READ);
 
-  fs_serial["PREFERRED_DEVICE"]        >> serial_config_.preferred_device;
-  fs_serial["SET_BAUDRATE"]            >> serial_config_.set_baudrate;
+  // 读入参数
+  fs_serial["PREFERRED_DEVICE"] >> serial_config_.preferred_device;
+  fs_serial["SET_BAUDRATE"] >> serial_config_.set_baudrate;
   fs_serial["SHOW_SERIAL_INFORMATION"] >> serial_config_.show_serial_information;
 
+  // 定义串口
   const char* DeviceName[] = {serial_config_.preferred_device.c_str(), "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"};
-
+  /*
+  struct termios {
+    unsigned short c_iflag;   输入模式标志
+    unsigned short c_oflag;   输出模式标志
+    unsigned short c_cflag;   控制模式标志
+    unsigned short c_lflag;   区域模式标志或本地模式标志或局部模式
+    unsigned char  c_line;    行控制line discipline 
+    unsigned char  c_cc[NCC];  控制字符特性
+  };
+  */
+  
   struct termios newstate;
+
+  // 将内存（字符串）前n个字节清零
   bzero(&newstate, sizeof(newstate));
 
+  // 依次打开串口
   for (size_t i = 0; i != sizeof(DeviceName) / sizeof(char*); ++i) {
     fd = open(DeviceName[i], O_RDWR | O_NONBLOCK | O_NOCTTY | O_NDELAY);
     if (fd == -1) {
       fmt::print("[{}] Open serial device failed: {}\n", idntifier_red, DeviceName[i]);
     } else {
       fmt::print("[{}] Open serial device success: {}\n", idntifier_green, DeviceName[i]);
-
       break;
     }
   }
 
+  // 波特率选择
   switch (serial_config_.set_baudrate) {
-    case 1:
-      cfsetospeed(&newstate, B115200);
-      cfsetispeed(&newstate, B115200);
-      break;
-    case 10:
-      cfsetospeed(&newstate, B921600);
-      cfsetispeed(&newstate, B921600);
-      break;
-    default:
-      cfsetospeed(&newstate, B115200);
-      cfsetispeed(&newstate, B115200);
-      break;
+  case 1:
+    cfsetospeed(&newstate, B115200);
+    cfsetispeed(&newstate, B115200);
+    break;
+  case 10:
+    cfsetospeed(&newstate, B921600);
+    cfsetispeed(&newstate, B921600);
+    break;
+  default:
+    cfsetospeed(&newstate, B115200);
+    cfsetispeed(&newstate, B115200);
+    break;
   }
 
   newstate.c_cflag |= CLOCAL | CREAD;
@@ -67,11 +84,13 @@ SerialPort::SerialPort(std::string _serial_config) {
 }
 
 SerialPort::~SerialPort(void) {
-  if (!close(fd)) { fmt::print("[{}] Close serial device success: {}\n", idntifier_green, fd); }
+  if (!close(fd)) {
+    fmt::print("[{}] Close serial device success: {}\n", idntifier_green, fd);
+  }
 }
 
 /* Receiving protocol:
- *  0:      'S'
+ *  0:      '0x53'
  *  1:      color
  *  2:      model
  *  3:      robot_id
@@ -80,14 +99,16 @@ SerialPort::~SerialPort(void) {
  *  12~13:  yaw_velocity
  *  14~15:  pitch_velocity
  *  16:     bullet_velocity
- *  17:     'E'
+ *  17:     '0x45'
  */
 void SerialPort::receiveData() {
+  // memset() 函数可以说是初始化内存的“万能函数”
   memset(receive_buff_, '0', REC_INFO_LENGTH * 2);
+
   read_message_ = read(fd, receive_buff_temp_, sizeof(receive_buff_temp_));
 
   for (size_t i = 0; i != sizeof(receive_buff_temp_); ++i) {
-    if (receive_buff_temp_[i] == 'S' && receive_buff_temp_[i + sizeof(receive_buff_) - 1] == 'E') {
+    if (receive_buff_temp_[i] == 0x53 && receive_buff_temp_[i + sizeof(receive_buff_) - 1] == 0x45) {
       if (serial_config_.show_serial_information == 1) {
         fmt::print("[{}] receiveData() ->", idntifier_green);
 
@@ -123,13 +144,7 @@ void SerialPort::receiveData() {
  *  11:     CRC
  *  12:     'E'
  */
-void SerialPort::writeData(const int&     _yaw,
-                           const int16_t& yaw,
-                           const int&     _pitch,
-                           const int16_t& pitch,
-                           const int16_t& depth,
-                           const int&     data_type,
-                           const int&     is_shooting) {
+void SerialPort::writeData(const int& _yaw, const int16_t& yaw, const int& _pitch, const int16_t& pitch, const int16_t& depth, const int& data_type, const int& is_shooting) {
   getDataForCRC(data_type, is_shooting, _yaw, yaw, _pitch, pitch, depth);
 
   uint8_t CRC = checksumCRC(crc_buff_, sizeof(crc_buff_));
@@ -139,18 +154,18 @@ void SerialPort::writeData(const int&     _yaw,
   write_message_ = write(fd, write_buff_, sizeof(write_buff_));
 
   if (serial_config_.show_serial_information == 1) {
-    yaw_reduction_   = mergeIntoBytes(write_buff_[5],  write_buff_[4]);
-    pitch_reduction_ = mergeIntoBytes(write_buff_[8],  write_buff_[7]);
+    yaw_reduction_   = mergeIntoBytes(write_buff_[5], write_buff_[4]);
+    pitch_reduction_ = mergeIntoBytes(write_buff_[8], write_buff_[7]);
     depth_reduction_ = mergeIntoBytes(write_buff_[10], write_buff_[9]);
 
     fmt::print("[{}] writeData() ->", idntifier_green);
-    for (size_t i = 0; i != 4; ++i) { fmt::print(" {}", write_buff_[i]); }
-    fmt::print(" {} {} {} {}",
-      static_cast<float>(yaw_reduction_) / 100,
-      static_cast<int>(write_buff_[6]),
-      static_cast<float>(pitch_reduction_) / 100,
-      static_cast<float>(depth_reduction_));
-    for (size_t i = 11; i != 12; ++i) { fmt::print(" {}", write_buff_[i]); }
+    for (size_t i = 0; i != 4; ++i) {
+      fmt::print(" {}", write_buff_[i]);
+    }
+    fmt::print(" {} {} {} {}", static_cast<float>(yaw_reduction_) / 100, static_cast<int>(write_buff_[6]), static_cast<float>(pitch_reduction_) / 100, static_cast<float>(depth_reduction_));
+    for (size_t i = 11; i != 12; ++i) {
+      fmt::print(" {}", write_buff_[i]);
+    }
     fmt::print("\n");
 
     yaw_reduction_   = 0x0000;
@@ -168,30 +183,14 @@ void SerialPort::writeData(const Write_Data& _write_data) {
   write_data_.pitch_angle  = fabs(_write_data.pitch_angle) * 100;
   write_data_.depth        = _write_data.depth;
 
-  writeData(write_data_.symbol_yaw,
-            write_data_.yaw_angle,
-            write_data_.symbol_pitch,
-            write_data_.pitch_angle,
-            write_data_.depth,
-            write_data_.data_type,
-            write_data_.is_shooting);
+  writeData(write_data_.symbol_yaw, write_data_.yaw_angle, write_data_.symbol_pitch, write_data_.pitch_angle, write_data_.depth, write_data_.data_type, write_data_.is_shooting);
 }
 
 void SerialPort::writeData() {
-  writeData(write_data_.symbol_yaw,
-            write_data_.yaw_angle,
-            write_data_.symbol_pitch,
-            write_data_.pitch_angle,
-            write_data_.depth,
-            write_data_.data_type,
-            write_data_.is_shooting);
+  writeData(write_data_.symbol_yaw, write_data_.yaw_angle, write_data_.symbol_pitch, write_data_.pitch_angle, write_data_.depth, write_data_.data_type, write_data_.is_shooting);
 }
 
-void SerialPort::updataWriteData(const float _yaw,
-                                 const float _pitch,
-                                 const int   _depth,
-                                 const int   _data_type,
-                                 const int   _is_shooting) {
+void SerialPort::updataWriteData(const float _yaw, const float _pitch, const int _depth, const int _data_type, const int _is_shooting) {
   write_data_.data_type    = _data_type > 1 ? 1 : _data_type;
   write_data_.is_shooting  = _is_shooting;
   write_data_.symbol_yaw   = _yaw >= 0 ? 1 : 0;
@@ -203,11 +202,7 @@ void SerialPort::updataWriteData(const float _yaw,
   writeData();
 }
 
-Write_Data SerialPort::gainWriteData(const float _yaw,
-                                     const float _pitch,
-                                     const int   _depth,
-                                     const int   _data_type,
-                                     const int   _is_shooting) {
+Write_Data SerialPort::gainWriteData(const float _yaw, const float _pitch, const int _depth, const int _data_type, const int _is_shooting) {
   Write_Data write_data;
 
   write_data.data_type    = _data_type > 1 ? 1 : _data_type;
@@ -224,18 +219,14 @@ Write_Data SerialPort::gainWriteData(const float _yaw,
 uint8_t SerialPort::checksumCRC(unsigned char* buf, uint16_t len) {
   uint8_t check = 0;
 
-  while (len--) { check = CRC8_Table[check ^ (*buf++)]; }
+  while (len--) {
+    check = CRC8_Table[check ^ (*buf++)];
+  }
 
   return check;
 }
 
-void SerialPort::getDataForCRC(const int&     data_type,
-                               const int&     is_shooting,
-                               const int&     _yaw,
-                               const int16_t& yaw,
-                               const int&     _pitch,
-                               const int16_t& pitch,
-                               const int16_t& depth) {
+void SerialPort::getDataForCRC(const int& data_type, const int& is_shooting, const int& _yaw, const int16_t& yaw, const int& _pitch, const int16_t& pitch, const int16_t& depth) {
   crc_buff_[0]  = 0x53;
   crc_buff_[1]  = static_cast<unsigned char>(data_type);
   crc_buff_[2]  = static_cast<unsigned char>(is_shooting);
@@ -249,14 +240,7 @@ void SerialPort::getDataForCRC(const int&     data_type,
   crc_buff_[10] = returnHighBit(depth);
 }
 
-void SerialPort::getDataForSend(const int&     data_type,
-                                const int&     is_shooting,
-                                const int&     _yaw,
-                                const int16_t& yaw,
-                                const int&     _pitch,
-                                const int16_t& pitch,
-                                const int16_t& depth,
-                                const uint8_t& CRC) {
+void SerialPort::getDataForSend(const int& data_type, const int& is_shooting, const int& _yaw, const int16_t& yaw, const int& _pitch, const int16_t& pitch, const int16_t& depth, const uint8_t& CRC) {
   write_buff_[0]  = 0x53;
   write_buff_[1]  = static_cast<unsigned char>(data_type);
   write_buff_[2]  = static_cast<unsigned char>(is_shooting);
@@ -294,15 +278,15 @@ void SerialPort::updateReceiveInformation() {
   }
 
   switch (transform_arr_[0]) {
-    case RED:
-      receive_data_.my_color = RED;
-      break;
-    case BLUE:
-      receive_data_.my_color = BLUE;
-      break;
-    default:
-      receive_data_.my_color = ALL;
-      break;
+  case RED:
+    receive_data_.my_color = RED;
+    break;
+  case BLUE:
+    receive_data_.my_color = BLUE;
+    break;
+  default:
+    receive_data_.my_color = ALL;
+    break;
   }
 
   switch (transform_arr_[1]) {
@@ -335,24 +319,24 @@ void SerialPort::updateReceiveInformation() {
   }
 
   switch (transform_arr_[2]) {
-    case HERO:
-      receive_data_.my_robot_id = HERO;
-      break;
-    case ENGINEERING:
-      receive_data_.my_robot_id = ENGINEERING;
-      break;
-    case INFANTRY:
-      receive_data_.my_robot_id = INFANTRY;
-      break;
-    case UAV:
-      receive_data_.my_robot_id = UAV;
-      break;
-    case SENTRY:
-      receive_data_.my_robot_id = SENTRY;
-      break;
-    default:
-      receive_data_.my_robot_id = INFANTRY;
-      break;
+  case HERO:
+    receive_data_.my_robot_id = HERO;
+    break;
+  case ENGINEERING:
+    receive_data_.my_robot_id = ENGINEERING;
+    break;
+  case INFANTRY:
+    receive_data_.my_robot_id = INFANTRY;
+    break;
+  case UAV:
+    receive_data_.my_robot_id = UAV;
+    break;
+  case SENTRY:
+    receive_data_.my_robot_id = SENTRY;
+    break;
+  default:
+    receive_data_.my_robot_id = INFANTRY;
+    break;
   }
 
   receive_data_.bullet_velocity = receive_buff_[14] - 2;

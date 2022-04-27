@@ -160,11 +160,11 @@ class SerialPort {
   ~SerialPort();
 
   inline void printReceiveInformation()
-  {   
-      std::cout<<"my_color is "+fmt::to_string(receive_data_.my_color) <<std::endl;
-      std::cout<<"mode is "+fmt::to_string(receive_data_.now_run_mode) <<std::endl;
-      std::cout<<"my_robot_id is "+fmt::to_string(receive_data_.my_robot_id) <<std::endl;
-      std::cout<<"bullet_velocity is "+fmt::to_string(receive_data_.bullet_velocity) <<std::endl;
+  {
+      fmt::print("my_color is "+fmt::to_string(receive_data_.my_color)+"\n");
+      fmt::print("mode is "+fmt::to_string(receive_data_.now_run_mode)+"\n");
+      fmt::print("my_robot_id is "+fmt::to_string(receive_data_.my_robot_id)+"\n");
+      fmt::print("bullet_velocity is "+fmt::to_string(receive_data_.bullet_velocity)+"\n");
   }
   /**
    * @brief 返回接受数据的结构体
