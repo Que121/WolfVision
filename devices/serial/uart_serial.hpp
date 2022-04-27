@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <string>
 
 #include <fcntl.h>
@@ -23,6 +24,7 @@
 #include <fmt/color.h>
 
 #include <opencv2/opencv.hpp>
+#include "fmt/format.h"
 
 namespace uart {
 
@@ -156,6 +158,14 @@ class SerialPort {
   explicit SerialPort(std::string _serial_config);
 
   ~SerialPort();
+
+  inline void printReceiveInformation()
+  {   
+      std::cout<<"my_color is "+fmt::to_string(receive_data_.my_color) <<std::endl;
+      std::cout<<"mode is "+fmt::to_string(receive_data_.now_run_mode) <<std::endl;
+      std::cout<<"my_robot_id is "+fmt::to_string(receive_data_.my_robot_id) <<std::endl;
+      std::cout<<"bullet_velocity is "+fmt::to_string(receive_data_.bullet_velocity) <<std::endl;
+  }
   /**
    * @brief 返回接受数据的结构体
    * 
@@ -179,13 +189,13 @@ class SerialPort {
    * 
    * @return int 
    */
-  inline int   returnReceiceColor()          { return receive_data_.my_color; }
+  inline int   returnReceiceColor()          {  return receive_data_.my_color; }
   /**
    * @brief 返回模式选择
    * 
    * @return int 
    */
-  inline int   returnReceiveMode()           { return receive_data_.now_run_mode; }
+  inline int   returnReceiveMode()           {  return receive_data_.now_run_mode; }
   /**
    * @brief 返回陀螺仪 Pitch 轴数据
    * 

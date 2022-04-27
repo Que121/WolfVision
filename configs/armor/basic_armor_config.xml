@@ -88,7 +88,7 @@
   - 1 Enable
   - 0 Disable
 -->
-<ARMOR_FORECAST>0</ARMOR_FORECAST>
+<ARMOR_FORECAST>1</ARMOR_FORECAST>
 <!--
   ARMOR_EDIT - 是否调整装甲板参数
   - 1 Enable

@@ -11,6 +11,7 @@
  *
  */
 #include "wolfvision.hpp"
+#include "fmt/core.h"
 
 int main() {
   fmt::print("[{}] WolfVision built on g++ version: {}\n", idntifier, __VERSION__);
@@ -49,6 +50,7 @@ int main() {
   fps::FPS       global_fps_;
 
   basic_roi::RoI roi_;
+
   while (true) {
     global_fps_.getTick();
     if (mv_capture_->isindustryimgInput()) {
@@ -57,8 +59,12 @@ int main() {
       cap_.read(src_img_);
     }
     if (!src_img_.empty()) {
-      serial_.updateReceiveInformation();
+      fmt::print("The receiveinformation is not empty!!!");
 
+      serial_.updateReceiveInformation();
+      
+      serial_.printReceiveInformation();
+   
       switch (serial_.returnReceiveMode()) {
       // 基础自瞄模式
       case uart::SUP_SHOOT:

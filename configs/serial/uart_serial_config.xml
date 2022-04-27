@@ -9,7 +9,7 @@
  -->
 <SET_BAUDRATE>1</SET_BAUDRATE>
 <!-- 
-  SHOW_SERIAL_INFORMATION - wheather print serial inforation
+  SHOW_SERIAL_INFORMATION - wheather print serial information
   - 0 Disable
   - 1 Enable
  -->
