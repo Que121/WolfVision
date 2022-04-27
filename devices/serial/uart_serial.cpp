@@ -27,6 +27,7 @@ SerialPort::SerialPort(std::string _serial_config) {
 
   // 定义串口
   const char* DeviceName[] = {serial_config_.preferred_device.c_str(), "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"};
+  
   /*
   struct termios {
     unsigned short c_iflag;   输入模式标志
@@ -37,7 +38,6 @@ SerialPort::SerialPort(std::string _serial_config) {
     unsigned char  c_cc[NCC];  控制字符特性
   };
   */
-  
   struct termios newstate;
 
   // 将内存（字符串）前n个字节清零
@@ -79,6 +79,7 @@ SerialPort::SerialPort(std::string _serial_config) {
   newstate.c_cc[VTIME] = 0;
   newstate.c_cc[VMIN]  = 0;
 
+  // 清空输入、输出缓冲区
   tcflush(fd, TCIOFLUSH);
   tcsetattr(fd, TCSANOW, &newstate);
 }
