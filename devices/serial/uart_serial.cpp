@@ -1,16 +1,3 @@
-/**
- * @file uart_serial.cpp
- * @author WCJ (1767851382@qq.com) 
- *         XX  (2796393320@qq.com)
- *         HZK
- *         RCX
- * @brief  串口通讯
- * @date 2021-08-27
- * 
- * @copyright Copyright (c) 2021 GUCROBOT_WOLF
- * 
- */
-
 #include "uart_serial.hpp"
 
 namespace uart {
@@ -20,14 +7,14 @@ SerialPort::SerialPort(std::string _serial_config) {
   // 读写串口模块xml文件
   cv::FileStorage fs_serial(_serial_config, cv::FileStorage::READ);
 
-  // 读入参数
+  // 从xml文件读入参数
   fs_serial["PREFERRED_DEVICE"] >> serial_config_.preferred_device;
   fs_serial["SET_BAUDRATE"] >> serial_config_.set_baudrate;
   fs_serial["SHOW_SERIAL_INFORMATION"] >> serial_config_.show_serial_information;
 
   // 定义串口
   const char* DeviceName[] = {serial_config_.preferred_device.c_str(), "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"};
-  
+
   /*
   struct termios {
     unsigned short c_iflag;   输入模式标志
@@ -103,13 +90,37 @@ SerialPort::~SerialPort(void) {
  *  17:     '0x45'
  */
 void SerialPort::receiveData() {
+  fmt::print("Start receive date!!!\n", idntifier_red);
+
   // memset() 函数可以说是初始化内存的“万能函数”
   memset(receive_buff_, '0', REC_INFO_LENGTH * 2);
 
   read_message_ = read(fd, receive_buff_temp_, sizeof(receive_buff_temp_));
 
+  // fmt::print("Length:%d\n", bufferLength, idntifier_red);
+  // std::cout << sizeof(receive_buff_temp_) << std::endl;
+
+  // sizeof(receive_buff_temp_) = 44;
+
+// ============================================Test receiveDate==================================================
   for (size_t i = 0; i != sizeof(receive_buff_temp_); ++i) {
+    // fmt::print("For begin!!!\n", idntifier_red);
+
+    fmt::print("[{}] receiveData() ->", idntifier_green);
+
+    for (size_t j = 0; j != sizeof(receive_buff_); ++j) {
+      receive_buff_[j] = receive_buff_temp_[i + j];
+
+      fmt::print(" {:d}", receive_buff_[j]);
+    }
+// ============================================Test receiveDate==================================================
+
+
+// ==========================================error:不进入if条件判断================================================
     if (receive_buff_temp_[i] == 0x53 && receive_buff_temp_[i + sizeof(receive_buff_) - 1] == 0x45) {
+      fmt::print("output receivedate!!!\n", idntifier_red);
+
+      // 打印接收到的串口信息
       if (serial_config_.show_serial_information == 1) {
         fmt::print("[{}] receiveData() ->", idntifier_green);
 
@@ -121,11 +132,13 @@ void SerialPort::receiveData() {
 
         fmt::print("\n");
       } else {
+        fmt::print("No output receivedate!!!\n", idntifier_red);
+
         for (size_t j = 0; j != sizeof(receive_buff_); ++j) {
           receive_buff_[j] = receive_buff_temp_[i + j];
         }
       }
-
+// ==========================================error:不进入if条件判断================================================
       break;
     }
   }

@@ -17,9 +17,12 @@ int main() {
   fmt::print("[{}] WolfVision built on g++ version: {}\n", idntifier, __VERSION__);
   fmt::print("[{}] WolfVision config file path: {}\n", idntifier, CONFIG_FILE_PATH);
   cv::Mat src_img_, roi_img_;
+
+  // MV相机
   mindvision::VideoCapture* mv_capture_ = new mindvision::VideoCapture(
     mindvision::CameraParam(0, mindvision::RESOLUTION_1280_X_1024, mindvision::EXPOSURE_600));
-
+  
+  // 串口通信
   uart::SerialPort serial_ = uart::SerialPort(
     fmt::format("{}{}", CONFIG_FILE_PATH, "/serial/uart_serial_config.xml"));
 
@@ -27,7 +30,8 @@ int main() {
 
   basic_armor::Detector basic_armor_ = basic_armor::Detector(
     fmt::format("{}{}", CONFIG_FILE_PATH, "/armor/basic_armor_config.xml"));
-
+  
+  // buff初始化
   basic_buff::Detector basic_buff_ = basic_buff::Detector(
     fmt::format("{}{}", CONFIG_FILE_PATH, "/buff/basic_buff_config.xml"));
 
@@ -65,10 +69,11 @@ int main() {
       cap_.read(src_img_);
     }
     if (!src_img_.empty()) {
-      fmt::print("The receiveinformation is not empty!!!");
+      fmt::print("The receive information is not empty!!!\n");
 
       serial_.updateReceiveInformation();
-      
+      fmt::print("update!!!!!!!!!!\n");
+
       serial_.printReceiveInformation();
    
       switch (serial_.returnReceiveMode()) {

@@ -1,16 +1,3 @@
-/**
- * @file uart_serial.hpp
- * @author WCJ (1767851382@qq.com) 
- *         XX  (2796393320@qq.com)
- *         HZK
- *         RCX
- * @brief  串口通讯
- * @date 2021-08-27
- * 
- * @copyright Copyright (c) 2021 GUCROBOT_WOLF
- * 
- */
-
 #pragma once
 
 #include <iostream>
@@ -26,23 +13,30 @@
 #include <opencv2/opencv.hpp>
 #include "fmt/format.h"
 
+// 串口类命名空间
 namespace uart {
 
+// fmt打印信息
 auto idntifier_green = fmt::format(fg(fmt::color::green) | fmt::emphasis::bold, "uart_serial");
 auto idntifier_red   = fmt::format(fg(fmt::color::red)   | fmt::emphasis::bold, "uart_serial");
 
+// 定义字节长度
 enum BufferLength {
   // The recieve length of the array obtained after decoding
+  // 解码后获得的数组的接收长度
   REC_INFO_LENGTH   = 22,
 
   // The send length of the array for CRC auth code code calculating
+  // 用于计算 CRC 身份验证代码的数组的发送长度
   CRC_BUFF_LENGTH   = 11,
 
   // The send length of the array after append CRC auth code
+  // 追加 CRC 身份验证代码后数组的发送长度
   WRITE_BUFF_LENGTH = 13,
 };
 
 // The color of our team
+// 我方队伍颜色
 enum Color {
   ALL,
   RED,
@@ -50,6 +44,7 @@ enum Color {
 };
 
 // Description of operation mode information
+// 操作模式信息
 enum RunMode {
   DEFAULT_MODE,
   // Self-Scanning Mode
@@ -69,7 +64,9 @@ enum RunMode {
   // Radar Mode
   RADAR_MODE,
 };
+
 // Describe the current robot ID information
+// 机器人ID
 enum RobotID {
   HERO = 1,
   UAV  = 6,
@@ -81,10 +78,11 @@ enum RobotID {
 struct Serial_Config {
   std::string preferred_device        = "/dev/ttyUSB0";
   int         set_baudrate            = 0;
-  int         show_serial_information = 0;
+  int         show_serial_information = 1;
 };
 
-// Serial port information receiving structure
+
+// ===================================串口信息接收结构================================================
 struct Receive_Data {
   int   my_color;
   int   now_run_mode;
@@ -92,6 +90,7 @@ struct Receive_Data {
   int   bullet_velocity;
 
   // Description of the yaw axis angle of the gyroscope (signed)
+  // 陀螺仪yaw轴联合体
   union Receive_Yaw_Angle_Information {
     float   yaw_angle;
     uint8_t arr_yaw_angle[4] = {0};
@@ -104,6 +103,7 @@ struct Receive_Data {
   } Receive_Yaw_Velocity_Info;
 
   // Description of the pitch axis angle of the gyroscope (signed)
+  // 陀螺仪pitch轴联合体
   union Receive_Pitch_Angle_Information {
     float   pitch_angle;
     uint8_t arr_pitch_angle[4] = {0};
@@ -125,8 +125,11 @@ struct Receive_Data {
     Receive_Pitch_Velocity_Info.pitch_veloctiy = 0.f;
   }
 };
+// ===================================串口信息接收结构================================================
 
-// Serial port message sending structure
+
+
+// ===================================串口信息发送结构================================================
 struct Write_Data {
   int   symbol_yaw;
   int   symbol_pitch;
@@ -151,6 +154,7 @@ struct Write_Data {
     pitch_angle  = 0.f;
   }
 };
+// ===================================串口信息发送结构================================================
 
 class SerialPort {
  public:
@@ -378,6 +382,7 @@ class SerialPort {
                       const int16_t& depth, const uint8_t&     CRC);
 };
 
+// CRC校验位
 static constexpr unsigned char CRC8_Table[] = {
   0,   94,  188, 226, 97,  63,  221, 131, 194, 156, 126, 32,  163, 253, 31,
   65,  157, 195, 33,  127, 252, 162, 64,  30,  95,  1,   227, 189, 62,  96,

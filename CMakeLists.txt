@@ -38,6 +38,7 @@ add_subdirectory(3rdparty/fmt)
 # Add fmtlib include to EXTRA_INCLUDES
 list(APPEND EXTRA_INCLUDES 3rdparty/fmt/include)
 
+# ===================================mindvidion-camera===============================================
 # Add mindvision-sdk directory and include path for target
 add_library(MVSDK SHARED IMPORTED)
 get_filename_component(MVSDK_PATH 3rdparty/mindvision/linux REALPATH)
@@ -60,6 +61,7 @@ set_property(TARGET MVSDK PROPERTY IMPORTED_LOCATION ${MIMDVISION_SDK_LIBRARY})
 list(APPEND EXTRA_LIBS MVSDK)
 # Add mindvision include path
 list(APPEND EXTRA_INCLUDES 3rdparty/mindvision/linux/include)
+# ===================================mindvidion-camera===============================================
 
 # Add project source dir to include
 list(APPEND EXTRA_INCLUDES ${PROJECT_SOURCE_DIR})
@@ -67,8 +69,7 @@ list(APPEND EXTRA_INCLUDES ${PROJECT_SOURCE_DIR})
 # Add base src and header
 list(APPEND EXTRA_INCLUDES base)
 
-# Add device as shared library to build target
-list(APPEND EXTRA_INCLUDES devices)
+ 
 
 list(APPEND EXTRA_INCLUDES ${PROJECT_SOURCE_DIR}/devices/camera)
 add_library(wv-mv-video-capture SHARED devices/camera/mv_video_capture.cpp)

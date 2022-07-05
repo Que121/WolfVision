@@ -1,5 +1,3 @@
 KERNEL=="*", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ACTION=="add", ATTR{idVendor}=="f622", MODE="666", TAG="mvusb_dev",  A"
 KERNEL=="*", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ACTION=="add", ATTR{idVendor}=="080b", MODE="666", TAG="mvusb_dev",  A"
 KERNEL=="*", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ACTION=="remove", TAG=="mvusb_dev", R"
-KERNEL=="*", ATTRS{idVendor}=="f622", ATTRS{idProduct}=="d13a", MODE:="0777", SYMLINK+="mindvision" 
-
