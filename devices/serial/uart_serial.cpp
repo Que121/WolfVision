@@ -15,20 +15,11 @@ SerialPort::SerialPort(std::string _serial_config) {
   // 定义串口
   const char* DeviceName[] = {serial_config_.preferred_device.c_str(), "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"};
 
-  /*
-  struct termios {
-    unsigned short c_iflag;   输入模式标志
-    unsigned short c_oflag;   输出模式标志
-    unsigned short c_cflag;   控制模式标志
-    unsigned short c_lflag;   区域模式标志或本地模式标志或局部模式
-    unsigned char  c_line;    行控制line discipline 
-    unsigned char  c_cc[NCC];  控制字符特性
-  };
-  */
-  struct termios newstate;
+  struct termios opt;
+  tcgetattr(fd, &opt);
 
   // 将内存（字符串）前n个字节清零
-  bzero(&newstate, sizeof(newstate));
+  bzero(&opt, sizeof(opt));
 
   // 依次打开串口
   for (size_t i = 0; i != sizeof(DeviceName) / sizeof(char*); ++i) {
@@ -44,31 +35,62 @@ SerialPort::SerialPort(std::string _serial_config) {
   // 波特率选择
   switch (serial_config_.set_baudrate) {
   case 1:
-    cfsetospeed(&newstate, B115200);
-    cfsetispeed(&newstate, B115200);
+    cfsetospeed(&opt, B115200);
+    cfsetispeed(&opt, B115200);
     break;
   case 10:
-    cfsetospeed(&newstate, B921600);
-    cfsetispeed(&newstate, B921600);
+    cfsetospeed(&opt, B921600);
+    cfsetispeed(&opt, B921600);
     break;
   default:
-    cfsetospeed(&newstate, B115200);
-    cfsetispeed(&newstate, B115200);
+    cfsetospeed(&opt, B115200);
+    cfsetispeed(&opt, B115200);
     break;
   }
 
-  newstate.c_cflag |= CLOCAL | CREAD;
-  newstate.c_cflag &= ~CSIZE;
-  newstate.c_cflag &= ~CSTOPB;
-  newstate.c_cflag |= CS8;
-  newstate.c_cflag &= ~PARENB;
+  // opt.c_cflag |= CLOCAL | CREAD;
+  // opt.c_cflag &= ~CSIZE;
+  // opt.c_cflag &= ~CSTOPB;
+  // opt.c_cflag |= CS8;
+  // opt.c_cflag &= ~PARENB;
 
-  newstate.c_cc[VTIME] = 0;
-  newstate.c_cc[VMIN]  = 0;
+  /* c_lflag 本地模式 */
+  opt.c_cflag &= ~INPCK;            //不启用输入奇偶检测
+  opt.c_cflag |= (CLOCAL | CREAD);  //CLOCAL忽略 modem 控制线,CREAD打开接受者
 
-  // 清空输入、输出缓冲区
-  tcflush(fd, TCIOFLUSH);
-  tcsetattr(fd, TCSANOW, &newstate);
+  /* c_lflag 本地模式 */
+  opt.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);  //ICANON启用标准模式;ECHO回显输入字符;ECHOE如果同时设置了 ICANON，字符 ERASE 擦除前一个输入字符，WERASE 擦除前一个词;ISIG当接受到字符 INTR, QUIT, SUSP, 或 DSUSP 时，产生相应的信号
+
+  /* c_oflag 输出模式 */
+  opt.c_oflag &= ~OPOST;            //OPOST启用具体实现自行定义的输出处理
+  opt.c_oflag &= ~(ONLCR | OCRNL);  //ONLCR将输出中的新行符映射为回车-换行,OCRNL将输出中的回车映射为新行符
+
+  /* c_iflag 输入模式 */
+  opt.c_iflag &= ~(ICRNL | INLCR);         //ICRNL将输入中的回车翻译为新行 (除非设置了 IGNCR),INLCR将输入中的 NL 翻译为 CR
+  opt.c_iflag &= ~(IXON | IXOFF | IXANY);  //IXON启用输出的 XON/XOFF流控制,IXOFF启用输入的 XON/XOFF流控制,IXANY(不属于 POSIX.1；XSI) 允许任何字符来重新开始输出
+
+  /* c_cflag 控制模式 */
+  opt.c_cflag &= ~CSIZE;   //字符长度掩码,取值为 CS5, CS6, CS7, 或 CS8,加~就是无
+  opt.c_cflag |= CS8;      //数据宽度是8bit
+  opt.c_cflag &= ~CSTOPB;  //CSTOPB设置两个停止位，而不是一个,加~就是设置一个停止位
+  opt.c_cflag &= ~PARENB;  //PARENB允许输出产生奇偶信息以及输入的奇偶校验,加~就是无校验
+
+  /* c_cc[NCCS] 控制字符 */
+  opt.c_cc[VTIME] = 0;  //等待数据时间(10秒的倍数),每个单位是0.1秒  若20就是2秒
+  opt.c_cc[VMIN] = 0;  //最少可读数据,非规范模式读取时的最小字符数，设为0则为非阻塞，如果设为其它值则阻塞，直到读到到对应的数据,就像一个阀值一样，比如设为8，如果只接收到3个数据，那么它是不会返回的，只有凑齐8个数据后一齐才READ返回，阻塞在那儿
+  /* new_cfg.c_cc[VMIN]   =   8;//DATA_LEN;
+       new_cfg.c_cc[VTIME]  =   20;//每个单位是0.1秒  20就是2秒
+       如果这样设置，就完全阻塞了，只有串口收到至少8个数据才会对READ立即返回，或才少于8个数据时，超时2秒也会有返回
+       另外特别注意的是当设置VTIME后，如果read第三个参数小于VMIN ，将会将VMIN 修改为read的第三个参数*/
+
+
+  /*TCIFLUSH  刷清输入队列
+      TCOFLUSH  刷清输出队列
+      TCIOFLUSH 刷清输入、输出队列*/
+
+  
+  tcflush(fd, TCIOFLUSH);  //刷串口清缓存
+  tcsetattr(fd, TCSANOW, &opt);  //设置终端控制属性,TCSANOW：不等数据传输完毕就立即改变属性
 }
 
 SerialPort::~SerialPort(void) {
@@ -90,34 +112,25 @@ SerialPort::~SerialPort(void) {
  *  17:     '0x45'
  */
 void SerialPort::receiveData() {
-  fmt::print("Start receive date!!!\n", idntifier_red);
+  
 
   // memset() 函数可以说是初始化内存的“万能函数”
   memset(receive_buff_, '0', REC_INFO_LENGTH * 2);
 
-  
+  fmt::print("Start receive date!!!\n", idntifier_red);
   read_message_ = read(fd, receive_buff_temp_, sizeof(receive_buff_temp_));
 
-  // fmt::print("Length:%d\n", bufferLength, idntifier_red);
-  // std::cout << sizeof(receive_buff_temp_) << std::endl;
+  // test
+  for (size_t j = 0; j != sizeof(receive_buff_temp_); ++j) {
+    printf("%x ", receive_buff_temp_[j]);
+  }
 
-  // sizeof(receive_buff_temp_) = 44; 
-
-
+// ===================================================================================
   for (size_t i = 0; i != sizeof(receive_buff_temp_); ++i) {
-    // fmt::print("For begin!!!\n", idntifier_red);
+    //fmt::print("[{}] receiveData() ->", idntifier_green);
+    //fmt::print(" {:x} ", receive_buff_temp_[i]);
+ 
 
-    fmt::print("[{}] receiveData() ->", idntifier_green);
-    // ============================================Test receiveDate==================================================
-    for (size_t j = 0; j != sizeof(receive_buff_); ++j) {
-      receive_buff_[j] = receive_buff_temp_[i + j];
-
-      fmt::print(" {:d}", receive_buff_[j]);
-    }
-    fmt::print("\n");
-    // ============================================Test receiveDate==================================================
-
-    // ==========================================error:不进入if条件判断================================================
     if (receive_buff_temp_[i] == 0x53 && receive_buff_temp_[i + sizeof(receive_buff_) - 1] == 0x45) {
       fmt::print("output receivedate!!!\n", idntifier_red);
 
@@ -128,22 +141,20 @@ void SerialPort::receiveData() {
         for (size_t j = 0; j != sizeof(receive_buff_); ++j) {
           receive_buff_[j] = receive_buff_temp_[i + j];
 
-          fmt::print(" {:d}", receive_buff_[j]);
+          fmt::print(" {:x}", receive_buff_[j]);
         }
 
         fmt::print("\n");
       } else {
-        fmt::print("No output receiveDate!!!\n", idntifier_red);
-
         for (size_t j = 0; j != sizeof(receive_buff_); ++j) {
           receive_buff_[j] = receive_buff_temp_[i + j];
         }
       }
-// ==========================================error:不进入if条件判断================================================
+
       break;
     }
   }
-
+  // ===================================================================================
   tcflush(fd, TCIFLUSH);
 }
 
@@ -189,6 +200,7 @@ void SerialPort::writeData(const int& _yaw, const int16_t& yaw, const int& _pitc
   }
 }
 
+// 能量机关使用
 void SerialPort::writeData(const Write_Data& _write_data) {
   write_data_.data_type    = _write_data.data_type > 1 ? 1 : _write_data.data_type;
   write_data_.is_shooting  = _write_data.is_shooting;
@@ -280,7 +292,6 @@ bool SerialPort::isEmpty() {
 }
 
 void SerialPort::updateReceiveInformation() {
-
   receiveData();
 
   if (isEmpty()) {

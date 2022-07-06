@@ -2,16 +2,27 @@
 
 #include <iostream>
 #include <string>
+#include <stdlib.h>
 
+// 串口
 #include <fcntl.h>
+#include <fmt/color.h>
+#include <fmt/core.h>
+#include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
 
-#include <fmt/core.h>
-#include <fmt/color.h>
-
 #include <opencv2/opencv.hpp>
+
 #include "fmt/format.h"
+#include "limits.h"
+#include "stdio.h"
+#include "time.h"
+//=======================
+#include <sys/select.h>
+#include <sys/time.h>
+//=======================
+#define UART_DEV "/dev/ttyUSB0"  //根据电脑插入的串口号定义
 
 // 串口类命名空间
 namespace uart {
@@ -329,7 +340,7 @@ class SerialPort {
   Receive_Data  last_receive_data_;
   Write_Data    write_data_;
 
-  int           fd;
+  ssize_t           fd;
   int           transform_arr_[4];
   unsigned char write_buff_[WRITE_BUFF_LENGTH];
   unsigned char crc_buff_[CRC_BUFF_LENGTH];

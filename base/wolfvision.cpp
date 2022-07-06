@@ -1,15 +1,3 @@
-/**
- * @file wolfvision.cpp
- * @author XX (2796393320@qq.com) 
- *         WCJ (1767851382@qq.com)
- *         SMS (2436210442@qq.com)
- *         SHL (2694359979@qq.com)
- * @brief 主函数
- * @date 2021-08-28
- *
- * @copyright Copyright (c) 2021 GUCROBOT_WOLF
- *
- */
 #include "wolfvision.hpp"
 #include "fmt/core.h"
 
