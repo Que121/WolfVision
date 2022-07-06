@@ -95,28 +95,29 @@ void SerialPort::receiveData() {
   // memset() 函数可以说是初始化内存的“万能函数”
   memset(receive_buff_, '0', REC_INFO_LENGTH * 2);
 
+  
   read_message_ = read(fd, receive_buff_temp_, sizeof(receive_buff_temp_));
 
   // fmt::print("Length:%d\n", bufferLength, idntifier_red);
   // std::cout << sizeof(receive_buff_temp_) << std::endl;
 
-  // sizeof(receive_buff_temp_) = 44;
+  // sizeof(receive_buff_temp_) = 44; 
 
-// ============================================Test receiveDate==================================================
+
   for (size_t i = 0; i != sizeof(receive_buff_temp_); ++i) {
     // fmt::print("For begin!!!\n", idntifier_red);
 
     fmt::print("[{}] receiveData() ->", idntifier_green);
-
+    // ============================================Test receiveDate==================================================
     for (size_t j = 0; j != sizeof(receive_buff_); ++j) {
       receive_buff_[j] = receive_buff_temp_[i + j];
 
       fmt::print(" {:d}", receive_buff_[j]);
     }
-// ============================================Test receiveDate==================================================
+    fmt::print("\n");
+    // ============================================Test receiveDate==================================================
 
-
-// ==========================================error:不进入if条件判断================================================
+    // ==========================================error:不进入if条件判断================================================
     if (receive_buff_temp_[i] == 0x53 && receive_buff_temp_[i + sizeof(receive_buff_) - 1] == 0x45) {
       fmt::print("output receivedate!!!\n", idntifier_red);
 
@@ -132,7 +133,7 @@ void SerialPort::receiveData() {
 
         fmt::print("\n");
       } else {
-        fmt::print("No output receivedate!!!\n", idntifier_red);
+        fmt::print("No output receiveDate!!!\n", idntifier_red);
 
         for (size_t j = 0; j != sizeof(receive_buff_); ++j) {
           receive_buff_[j] = receive_buff_temp_[i + j];
@@ -279,6 +280,7 @@ bool SerialPort::isEmpty() {
 }
 
 void SerialPort::updateReceiveInformation() {
+
   receiveData();
 
   if (isEmpty()) {
