@@ -1,8 +1,9 @@
 #pragma once
 
+#include <stdlib.h>
+
 #include <iostream>
 #include <string>
-#include <stdlib.h>
 
 // 串口
 #include <fcntl.h>
@@ -29,17 +30,17 @@ namespace uart {
 
 // fmt打印信息
 auto idntifier_green = fmt::format(fg(fmt::color::green) | fmt::emphasis::bold, "uart_serial");
-auto idntifier_red   = fmt::format(fg(fmt::color::red)   | fmt::emphasis::bold, "uart_serial");
+auto idntifier_red   = fmt::format(fg(fmt::color::red) | fmt::emphasis::bold, "uart_serial");
 
 // 定义字节长度
 enum BufferLength {
   // The recieve length of the array obtained after decoding
   // 解码后获得的数组的接收长度
-  REC_INFO_LENGTH   = 22,
+  REC_INFO_LENGTH = 18,
 
   // The send length of the array for CRC auth code code calculating
   // 用于计算 CRC 身份验证代码的数组的发送长度
-  CRC_BUFF_LENGTH   = 11,
+  CRC_BUFF_LENGTH = 11,
 
   // The send length of the array after append CRC auth code
   // 追加 CRC 身份验证代码后数组的发送长度
@@ -92,13 +93,12 @@ struct Serial_Config {
   int         show_serial_information = 1;
 };
 
-
 // ===================================串口信息接收结构================================================
 struct Receive_Data {
-  int   my_color;
-  int   now_run_mode;
-  int   my_robot_id;
-  int   bullet_velocity;
+  int my_color;
+  int now_run_mode;
+  int my_robot_id;
+  int bullet_velocity;
 
   // Description of the yaw axis angle of the gyroscope (signed)
   // 陀螺仪yaw轴联合体
@@ -107,8 +107,7 @@ struct Receive_Data {
     uint8_t arr_yaw_angle[4] = {0};
   } Receive_Yaw_Angle_Info;
 
-  union Receive_Yaw_Velocity_Information
-  {
+  union Receive_Yaw_Velocity_Information {
     float   yaw_veloctiy;
     uint8_t arr_yaw_velocity[4] = {0};
   } Receive_Yaw_Velocity_Info;
@@ -138,19 +137,17 @@ struct Receive_Data {
 };
 // ===================================串口信息接收结构================================================
 
-
-
 // ===================================串口信息发送结构================================================
 struct Write_Data {
-  int   symbol_yaw;
-  int   symbol_pitch;
-  int   depth;
+  int symbol_yaw;
+  int symbol_pitch;
+  int depth;
 
   // Whether the robot shold shoot, 1 for shoot for 1 ball, otherwises 0
-  int   is_shooting;
+  int is_shooting;
 
   // Whether the target is found, 1 for found, otherwise 0
-  int   data_type;
+  int data_type;
 
   float yaw_angle;
   float pitch_angle;
@@ -175,12 +172,11 @@ class SerialPort {
 
   ~SerialPort();
 
-  inline void printReceiveInformation()
-  {
-      fmt::print("my_color is "+fmt::to_string(receive_data_.my_color)+"\n");
-      fmt::print("mode is "+fmt::to_string(receive_data_.now_run_mode)+"\n");
-      fmt::print("my_robot_id is "+fmt::to_string(receive_data_.my_robot_id)+"\n");
-      fmt::print("bullet_velocity is "+fmt::to_string(receive_data_.bullet_velocity)+"\n");
+  inline void printReceiveInformation() {
+    fmt::print("my_color is " + fmt::to_string(receive_data_.my_color) + "\n");
+    fmt::print("mode is " + fmt::to_string(receive_data_.now_run_mode) + "\n");
+    fmt::print("my_robot_id is " + fmt::to_string(receive_data_.my_robot_id) + "\n");
+    fmt::print("bullet_velocity is " + fmt::to_string(receive_data_.bullet_velocity) + "\n");
   }
   /**
    * @brief 返回接受数据的结构体
@@ -193,49 +189,49 @@ class SerialPort {
    * 
    * @return int 
    */
-  inline int   returnReceiveBulletVelocity() { return receive_data_.bullet_velocity; }
+  inline int returnReceiveBulletVelocity() { return receive_data_.bullet_velocity; }
   /**
    * @brief 返回机器人 ID
    * 
    * @return int 
    */
-  inline int   returnReceiveRobotId()        { return receive_data_.my_robot_id; }
+  inline int returnReceiveRobotId() { return receive_data_.my_robot_id; }
   /**
    * @brief 返回自身颜色
    * 
    * @return int 
    */
-  inline int   returnReceiceColor()          {  return receive_data_.my_color; }
+  inline int returnReceiceColor() { return receive_data_.my_color; }
   /**
    * @brief 返回模式选择
    * 
    * @return int 
    */
-  inline int   returnReceiveMode()           {  return receive_data_.now_run_mode; }
+  inline int returnReceiveMode() { return receive_data_.now_run_mode; }
   /**
    * @brief 返回陀螺仪 Pitch 轴数据
    * 
    * @return float 
    */
-  inline float returnReceivePitch()          { return receive_data_.Receive_Pitch_Angle_Info.pitch_angle; }
+  inline float returnReceivePitch() { return receive_data_.Receive_Pitch_Angle_Info.pitch_angle; }
   /**
    * @brief 返回陀螺仪 Yaw 轴数据
    * 
    * @return float 
    */
-  inline float returnReceiveYaw()                  { return receive_data_.Receive_Yaw_Angle_Info.yaw_angle; }
+  inline float returnReceiveYaw() { return receive_data_.Receive_Yaw_Angle_Info.yaw_angle; }
   /**
    * @brief 返回陀螺仪Yaw轴速度数据
    * 
    * @return float 
    */
-  inline float returnReceiveYawVelocity()          { return receive_data_.Receive_Yaw_Velocity_Info.yaw_veloctiy; }
+  inline float returnReceiveYawVelocity() { return receive_data_.Receive_Yaw_Velocity_Info.yaw_veloctiy; }
   /**
    * @brief 返回陀螺仪Pitch轴速度数据
    * 
    * @return float 
    */
-  inline float returnReceivePitchVelocity()        { return receive_data_.Receive_Pitch_Velocity_Info.pitch_veloctiy;}
+  inline float returnReceivePitchVelocity() { return receive_data_.Receive_Pitch_Velocity_Info.pitch_veloctiy; }
 
   /**
    * @brief 返回高八位数据
@@ -266,8 +262,7 @@ class SerialPort {
    * @param lowbit    低八位数据
    * @return int16_t  合并后数据
    */
-  inline int16_t mergeIntoBytes(const unsigned char& highbit,
-                                const unsigned char& lowbit) {
+  inline int16_t mergeIntoBytes(const unsigned char& highbit, const unsigned char& lowbit) {
     exchangebit_ = (highbit << 8) | lowbit;
 
     return exchangebit_;
@@ -283,10 +278,7 @@ class SerialPort {
    * @param  data_type        是否发现目标
    * @param  is_shooting      开火命令
    */
-  void writeData(const int&     _yaw,   const int16_t& yaw,
-                 const int&     _pitch, const int16_t& pitch,
-                 const int16_t& depth,  const int&     data_type = 0,
-                 const int&     is_shooting = 0);
+  void writeData(const int& _yaw, const int16_t& yaw, const int& _pitch, const int16_t& pitch, const int16_t& depth, const int& data_type = 0, const int& is_shooting = 0);
   void writeData();
   /**
    * @brief 发送数据
@@ -303,9 +295,7 @@ class SerialPort {
    * @param _data_type    是否发现目标
    * @param _is_shooting  开火命令
    */
-  void updataWriteData(const float _yaw,   const float _pitch,
-                       const int   _depth, const int   _data_type = 0,
-                       const int   _is_shooting = 0);
+  void updataWriteData(const float _yaw, const float _pitch, const int _depth, const int _data_type = 0, const int _is_shooting = 0);
   /**
    * @brief 数据转换为结构体
    *
@@ -316,9 +306,7 @@ class SerialPort {
    * @param _is_shooting  开火命令
    * @return Write_Data   返回写入数据结构体
    */
-  Write_Data gainWriteData(const float _yaw,  const float _pitch,
-                           const int  _depth, const int   _data_type = 0,
-                           const int  _is_shooting = 0);
+  Write_Data gainWriteData(const float _yaw, const float _pitch, const int _depth, const int _data_type = 0, const int _is_shooting = 0);
   /**
    * @brief 接收数据
    */
@@ -340,12 +328,12 @@ class SerialPort {
   Receive_Data  last_receive_data_;
   Write_Data    write_data_;
 
-  ssize_t           fd;
+  ssize_t       fd;
   int           transform_arr_[4];
   unsigned char write_buff_[WRITE_BUFF_LENGTH];
   unsigned char crc_buff_[CRC_BUFF_LENGTH];
-  unsigned char receive_buff_[REC_INFO_LENGTH];
-  unsigned char receive_buff_temp_[REC_INFO_LENGTH * 2];
+  unsigned char receive_buff_[REC_INFO_LENGTH]          = {0};
+  unsigned char receive_buff_temp_[REC_INFO_LENGTH * 2] = {0};
   unsigned char exchangebyte_;
 
   int16_t yaw_reduction_;
@@ -362,7 +350,7 @@ class SerialPort {
 
   inline uint8_t checksumCRC(unsigned char* buf, uint16_t len);
 
-/**
+  /**
  * @brief Get the Data For CRC object
  * @param  data_type        是否发现目标
  * @param  is_shooting      开火命令
@@ -372,10 +360,7 @@ class SerialPort {
  * @param  pitch            pitch 绝对值
  * @param  depth            深度
  */
-  void getDataForCRC(const int&     data_type, const int&     is_shooting,
-                     const int&     _yaw,      const int16_t& yaw,
-                     const int&     _pitch,    const int16_t& pitch,
-                     const int16_t& depth);
+  void getDataForCRC(const int& data_type, const int& is_shooting, const int& _yaw, const int16_t& yaw, const int& _pitch, const int16_t& pitch, const int16_t& depth);
 
   /**
  * @brief Get the Data For Send object
@@ -388,32 +373,17 @@ class SerialPort {
  * @param  depth            深度
  * @param  CRC              CRC 校验码
  */
-  void getDataForSend(const int&     data_type, const int&     is_shooting,
-                      const int&     _yaw,      const int16_t& yaw,
-                      const int&     _pitch,    const int16_t& pitch,
-                      const int16_t& depth, const uint8_t&     CRC);
+  void getDataForSend(const int& data_type, const int& is_shooting, const int& _yaw, const int16_t& yaw, const int& _pitch, const int16_t& pitch, const int16_t& depth, const uint8_t& CRC);
 };
 
 // CRC校验位
 static constexpr unsigned char CRC8_Table[] = {
-  0,   94,  188, 226, 97,  63,  221, 131, 194, 156, 126, 32,  163, 253, 31,
-  65,  157, 195, 33,  127, 252, 162, 64,  30,  95,  1,   227, 189, 62,  96,
-  130, 220, 35,  125, 159, 193, 66,  28,  254, 160, 225, 191, 93,  3,   128,
-  222, 60,  98,  190, 224, 2,   92,  223, 129, 99,  61,  124, 34,  192, 158,
-  29,  67,  161, 255, 70,  24,  250, 164, 39,  121, 155, 197, 132, 218, 56,
-  102, 229, 187, 89,  7,   219, 133, 103, 57,  186, 228, 6,   88,  25,  71,
-  165, 251, 120, 38,  196, 154, 101, 59,  217, 135, 4,   90,  184, 230, 167,
-  249, 27,  69,  198, 152, 122, 36,  248, 166, 68,  26,  153, 199, 37,  123,
-  58,  100, 134, 216, 91,  5,   231, 185, 140, 210, 48,  110, 237, 179, 81,
-  15,  78,  16,  242, 172, 47,  113, 147, 205, 17,  79,  173, 243, 112, 46,
-  204, 146, 211, 141, 111, 49,  178, 236, 14,  80,  175, 241, 19,  77,  206,
-  144, 114, 44,  109, 51,  209, 143, 12,  82,  176, 238, 50,  108, 142, 208,
-  83,  13,  239, 177, 240, 174, 76,  18,  145, 207, 45,  115, 202, 148, 118,
-  40,  171, 245, 23,  73,  8,   86,  180, 234, 105, 55,  213, 139, 87,  9,
-  235, 181, 54,  104, 138, 212, 149, 203, 41,  119, 244, 170, 72,  22,  233,
-  183, 85,  11,  136, 214, 52,  106, 43,  117, 151, 201, 74,  20,  246, 168,
-  116, 42,  200, 150, 21,  75,  169, 247, 182, 232, 10,  84,  215, 137, 107,
-  53
-};
+  0,   94,  188, 226, 97,  63,  221, 131, 194, 156, 126, 32,  163, 253, 31, 65,  157, 195, 33,  127, 252, 162, 64,  30,  95,  1,   227, 189, 62,  96,  130, 220, 35,  125, 159, 193, 66,
+  28,  254, 160, 225, 191, 93,  3,   128, 222, 60,  98,  190, 224, 2,   92, 223, 129, 99,  61,  124, 34,  192, 158, 29,  67,  161, 255, 70,  24,  250, 164, 39,  121, 155, 197, 132, 218,
+  56,  102, 229, 187, 89,  7,   219, 133, 103, 57,  186, 228, 6,   88,  25, 71,  165, 251, 120, 38,  196, 154, 101, 59,  217, 135, 4,   90,  184, 230, 167, 249, 27,  69,  198, 152, 122,
+  36,  248, 166, 68,  26,  153, 199, 37,  123, 58,  100, 134, 216, 91,  5,  231, 185, 140, 210, 48,  110, 237, 179, 81,  15,  78,  16,  242, 172, 47,  113, 147, 205, 17,  79,  173, 243,
+  112, 46,  204, 146, 211, 141, 111, 49,  178, 236, 14,  80,  175, 241, 19, 77,  206, 144, 114, 44,  109, 51,  209, 143, 12,  82,  176, 238, 50,  108, 142, 208, 83,  13,  239, 177, 240,
+  174, 76,  18,  145, 207, 45,  115, 202, 148, 118, 40,  171, 245, 23,  73, 8,   86,  180, 234, 105, 55,  213, 139, 87,  9,   235, 181, 54,  104, 138, 212, 149, 203, 41,  119, 244, 170,
+  72,  22,  233, 183, 85,  11,  136, 214, 52,  106, 43,  117, 151, 201, 74, 20,  246, 168, 116, 42,  200, 150, 21,  75,  169, 247, 182, 232, 10,  84,  215, 137, 107, 53};
 
 }  // namespace uart

@@ -48,7 +48,8 @@ int main() {
   fps::FPS       global_fps_;
 
   basic_roi::RoI roi_;
-
+  
+  // 启动循环
   while (true) {
     global_fps_.getTick();
     if (mv_capture_->isindustryimgInput()) {

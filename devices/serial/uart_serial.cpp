@@ -54,12 +54,19 @@ SerialPort::SerialPort(std::string _serial_config) {
   // opt.c_cflag |= CS8;
   // opt.c_cflag &= ~PARENB;
 
+  opt.c_iflag &= ~(INLCR | ICRNL);         //不要回车和换行转换
+  opt.c_iflag &= ~(IXON | IXOFF | IXANY);  //不要软件流控制
+  opt.c_oflag &= ~OPOST;
+  opt.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);  //原始模式
+
   /* c_lflag 本地模式 */
   opt.c_cflag &= ~INPCK;            //不启用输入奇偶检测
   opt.c_cflag |= (CLOCAL | CREAD);  //CLOCAL忽略 modem 控制线,CREAD打开接受者
 
   /* c_lflag 本地模式 */
-  opt.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);  //ICANON启用标准模式;ECHO回显输入字符;ECHOE如果同时设置了 ICANON，字符 ERASE 擦除前一个输入字符，WERASE 擦除前一个词;ISIG当接受到字符 INTR, QUIT, SUSP, 或 DSUSP 时，产生相应的信号
+  opt.c_lflag &=
+    ~(ICANON | ECHO | ECHOE |
+      ISIG);  //ICANON启用标准模式;ECHO回显输入字符;ECHOE如果同时设置了 ICANON，字符 ERASE 擦除前一个输入字符，WERASE 擦除前一个词;ISIG当接受到字符 INTR, QUIT, SUSP, 或 DSUSP 时，产生相应的信号
 
   /* c_oflag 输出模式 */
   opt.c_oflag &= ~OPOST;            //OPOST启用具体实现自行定义的输出处理
@@ -77,19 +84,18 @@ SerialPort::SerialPort(std::string _serial_config) {
 
   /* c_cc[NCCS] 控制字符 */
   opt.c_cc[VTIME] = 0;  //等待数据时间(10秒的倍数),每个单位是0.1秒  若20就是2秒
-  opt.c_cc[VMIN] = 0;  //最少可读数据,非规范模式读取时的最小字符数，设为0则为非阻塞，如果设为其它值则阻塞，直到读到到对应的数据,就像一个阀值一样，比如设为8，如果只接收到3个数据，那么它是不会返回的，只有凑齐8个数据后一齐才READ返回，阻塞在那儿
+  opt.c_cc[VMIN]  = 0;
+  //最少可读数据,非规范模式读取时的最小字符数，设为0则为非阻塞，如果设为其它值则阻塞，直到读到到对应的数据,就像一个阀值一样，比如设为8，如果只接收到3个数据，那么它是不会返回的，只有凑齐8个数据后一齐才READ返回，阻塞在那儿
   /* new_cfg.c_cc[VMIN]   =   8;//DATA_LEN;
        new_cfg.c_cc[VTIME]  =   20;//每个单位是0.1秒  20就是2秒
        如果这样设置，就完全阻塞了，只有串口收到至少8个数据才会对READ立即返回，或才少于8个数据时，超时2秒也会有返回
        另外特别注意的是当设置VTIME后，如果read第三个参数小于VMIN ，将会将VMIN 修改为read的第三个参数*/
 
-
   /*TCIFLUSH  刷清输入队列
       TCOFLUSH  刷清输出队列
       TCIOFLUSH 刷清输入、输出队列*/
 
-  
-  tcflush(fd, TCIOFLUSH);  //刷串口清缓存
+  tcflush(fd, TCIOFLUSH);        //刷串口清缓存
   tcsetattr(fd, TCSANOW, &opt);  //设置终端控制属性,TCSANOW：不等数据传输完毕就立即改变属性
 }
 
@@ -112,36 +118,31 @@ SerialPort::~SerialPort(void) {
  *  17:     '0x45'
  */
 void SerialPort::receiveData() {
-  
-
   // memset() 函数可以说是初始化内存的“万能函数”
   memset(receive_buff_, '0', REC_INFO_LENGTH * 2);
 
   fmt::print("Start receive date!!!\n", idntifier_red);
   read_message_ = read(fd, receive_buff_temp_, sizeof(receive_buff_temp_));
 
-  // test
-  for (size_t j = 0; j != sizeof(receive_buff_temp_); ++j) {
-    printf("%x ", receive_buff_temp_[j]);
-  }
-
-// ===================================================================================
+  // ===================================================================================
   for (size_t i = 0; i != sizeof(receive_buff_temp_); ++i) {
     //fmt::print("[{}] receiveData() ->", idntifier_green);
-    //fmt::print(" {:x} ", receive_buff_temp_[i]);
- 
+    //fmt::print(" {:x} ", receive_buff_temp_[i])；
+    //打印第一次接收到的串口信息
+    printf("%x ", receive_buff_temp_[i]);
 
-    if (receive_buff_temp_[i] == 0x53 && receive_buff_temp_[i + sizeof(receive_buff_) - 1] == 0x45) {
+    if (receive_buff_temp_[i] == 0x53 && receive_buff_temp_[i + 17] == 0x45) {
       fmt::print("output receivedate!!!\n", idntifier_red);
 
-      // 打印接收到的串口信息
       if (serial_config_.show_serial_information == 1) {
         fmt::print("[{}] receiveData() ->", idntifier_green);
 
         for (size_t j = 0; j != sizeof(receive_buff_); ++j) {
           receive_buff_[j] = receive_buff_temp_[i + j];
 
-          fmt::print(" {:x}", receive_buff_[j]);
+          // 打印筛选后的串口信息
+          // fmt::print(" {:x}", receive_buff_[j]);
+          // printf("%x ", receive_buff_[j]);
         }
 
         fmt::print("\n");
