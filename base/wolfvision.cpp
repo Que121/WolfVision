@@ -51,17 +51,16 @@ int main() {
   
   // 启动循环
   while (true) {
-    global_fps_.getTick();
+    // global_fps_.getTick();1
     if (mv_capture_->isindustryimgInput()) {
       src_img_ = mv_capture_->image();
     } else {
       cap_.read(src_img_);
     }
     if (!src_img_.empty()) {
-      fmt::print("The receive information is not empty!!!\n");
-
+      
       serial_.updateReceiveInformation();
-      fmt::print("update!!!!!!!!!!\n");
+      // fmt::print("update!!!!!!!!!!\n");
 
       serial_.printReceiveInformation();
    

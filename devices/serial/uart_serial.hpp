@@ -78,13 +78,14 @@ enum RunMode {
 };
 
 // Describe the current robot ID information
-// 机器人ID
 enum RobotID {
-  HERO = 1,
-  UAV  = 6,
-  ENGINEERING,
-  INFANTRY,
-  SENTRY,
+  HERO        = 1,
+  ENGINEERING = 2,
+  INFANTRY    = 3,
+  UAV         = 6,
+  SENTRY      = 7,
+  DART        = 8,
+  RADAR       = 9,
 };
 
 struct Serial_Config {
@@ -107,32 +108,35 @@ struct Receive_Data {
     uint8_t arr_yaw_angle[4] = {0};
   } Receive_Yaw_Angle_Info;
 
-  union Receive_Yaw_Velocity_Information {
-    float   yaw_veloctiy;
-    uint8_t arr_yaw_velocity[4] = {0};
-  } Receive_Yaw_Velocity_Info;
-
-  // Description of the pitch axis angle of the gyroscope (signed)
-  // 陀螺仪pitch轴联合体
   union Receive_Pitch_Angle_Information {
     float   pitch_angle;
     uint8_t arr_pitch_angle[4] = {0};
   } Receive_Pitch_Angle_Info;
 
-  union Receive_Pitch_Velocity_Information {
-    float   pitch_veloctiy;
-    uint8_t arr_pitch_velocity[4] = {0};
-  } Receive_Pitch_Velocity_Info;
+  // Description of the pitch axis angle of the gyroscope (signed)
+  // 陀螺仪pitch轴联合体  强制转换 不需要联合体
+  float yaw_veloctiy;
+  float pitch_veloctiy;
+
+  // union Receive_Yaw_Velocity_Information {
+  //   float   yaw_veloctiy;
+  //   uint8_t arr_yaw_velocity[4] = {0};
+  // } Receive_Yaw_Velocity_Info;
+
+  // union Receive_Pitch_Velocity_Information {
+  //   float   pitch_veloctiy;
+  //   uint8_t arr_pitch_velocity[4] = {0};
+  // } Receive_Pitch_Velocity_Info;
 
   Receive_Data() {
-    my_color                                   = ALL;
-    now_run_mode                               = SUP_SHOOT;
-    my_robot_id                                = INFANTRY;
-    bullet_velocity                            = 30;
-    Receive_Yaw_Angle_Info.yaw_angle           = 0.f;
-    Receive_Yaw_Velocity_Info.yaw_veloctiy     = 0.f;
-    Receive_Pitch_Angle_Info.pitch_angle       = 0.f;
-    Receive_Pitch_Velocity_Info.pitch_veloctiy = 0.f;
+    my_color                             = ALL;
+    now_run_mode                         = SUP_SHOOT;
+    my_robot_id                          = INFANTRY;
+    bullet_velocity                      = 30;
+    Receive_Yaw_Angle_Info.yaw_angle     = 0.f;
+    yaw_veloctiy                         = 0.f;
+    Receive_Pitch_Angle_Info.pitch_angle = 0.f;
+    pitch_veloctiy                       = 0.f;
   }
 };
 // ===================================串口信息接收结构================================================
@@ -173,10 +177,25 @@ class SerialPort {
   ~SerialPort();
 
   inline void printReceiveInformation() {
+    //=========打印我方颜色=========//
     fmt::print("my_color is " + fmt::to_string(receive_data_.my_color) + "\n");
+    //=========打印模式=========//
     fmt::print("mode is " + fmt::to_string(receive_data_.now_run_mode) + "\n");
+    //=========打印机器人ID=========//
     fmt::print("my_robot_id is " + fmt::to_string(receive_data_.my_robot_id) + "\n");
-    fmt::print("bullet_velocity is " + fmt::to_string(receive_data_.bullet_velocity) + "\n");
+    //=========打印发射速度=========//
+    int bullet_velocity = returnReceiveBulletVelocity();
+    printf("bullet_velocity is ");
+    printf("%x \n", bullet_velocity);
+    //=========打印陀螺仪Angle数据=========//
+    float yaw_angle = returnReceiveYaw();
+    printf("yaw_angle is ");
+    printf("%f \n", yaw_angle);
+    float pitch_angle = returnReceivePitch();
+    printf("pitch_angle is ");
+    printf("%f \n", pitch_angle);
+    //=========打印陀螺仪velocity数据=========//
+    
   }
   /**
    * @brief 返回接受数据的结构体
@@ -225,13 +244,13 @@ class SerialPort {
    * 
    * @return float 
    */
-  inline float returnReceiveYawVelocity() { return receive_data_.Receive_Yaw_Velocity_Info.yaw_veloctiy; }
+  inline float returnReceiveYawVelocity() { return receive_data_.yaw_veloctiy; }
   /**
    * @brief 返回陀螺仪Pitch轴速度数据
    * 
    * @return float 
    */
-  inline float returnReceivePitchVelocity() { return receive_data_.Receive_Pitch_Velocity_Info.pitch_veloctiy; }
+  inline float returnReceivePitchVelocity() { return receive_data_.pitch_veloctiy; }
 
   /**
    * @brief 返回高八位数据
