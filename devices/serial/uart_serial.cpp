@@ -166,14 +166,19 @@ void SerialPort::receiveData() {
  *  12:     'E'
  */
 void SerialPort::writeData(const int& _yaw, const int16_t& yaw, const int& _pitch, const int16_t& pitch, const int16_t& depth, const int& data_type, const int& is_shooting) {
+  
+  // 获取 CRC 对象的数据
   getDataForCRC(data_type, is_shooting, _yaw, yaw, _pitch, pitch, depth);
-
+  
+  // 
   uint8_t CRC = checksumCRC(crc_buff_, sizeof(crc_buff_));
-
+  
   getDataForSend(data_type, is_shooting, _yaw, yaw, _pitch, pitch, depth, CRC);
-
+  
+  // 发送数据
   write_message_ = write(fd, write_buff_, sizeof(write_buff_));
-
+  
+  // 打印串口输出信息
   if (serial_config_.show_serial_information == 1) {
     yaw_reduction_   = mergeIntoBytes(write_buff_[5], write_buff_[4]);
     pitch_reduction_ = mergeIntoBytes(write_buff_[8], write_buff_[7]);
@@ -390,7 +395,7 @@ void SerialPort::updateReceiveInformation() {
     printf("%x ", receive_data_.Receive_Pitch_Angle_Info.arr_pitch_angle[i]);
   }
   //===========陀螺仪Velocity数据===========// 左移八位 或
-  receive_data_.yaw_veloctiy = (receive_buff_[13] << 8) | receive_buff_[12];
+  receive_data_.yaw_veloctiy   = (receive_buff_[13] << 8) | receive_buff_[12];
   receive_data_.pitch_veloctiy = (receive_buff_[15] << 8) | receive_buff_[14];
   // for (size_t i = 0; i != sizeof(receive_data_.Receive_Yaw_Velocity_Info.arr_yaw_velocity); ++i) {
   //   receive_data_.Receive_Yaw_Velocity_Info.arr_yaw_velocity[i] = receive_buff_[i + 10];
