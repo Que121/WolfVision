@@ -51,7 +51,7 @@ int main() {
   
   // 启动循环
   while (true) {
-    // global_fps_.getTick();1
+    global_fps_.getTick();
     if (mv_capture_->isindustryimgInput()) {
       src_img_ = mv_capture_->image();
     } else {

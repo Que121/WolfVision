@@ -195,7 +195,12 @@ class SerialPort {
     printf("pitch_angle is ");
     printf("%f \n", pitch_angle);
     //=========打印陀螺仪velocity数据=========//
-    
+    float yaw_velocity = returnReceiveYawVelocity();
+    printf("yaw_velocity is ");
+    printf("%f \n", yaw_velocity);
+    float pitch_velocity = returnReceivePitchVelocity();
+    printf("pitch_velocity is ");
+    printf("%f \n", pitch_velocity);
   }
   /**
    * @brief 返回接受数据的结构体

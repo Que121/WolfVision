@@ -391,7 +391,7 @@ void SerialPort::updateReceiveInformation() {
   }
   //===========陀螺仪Velocity数据===========// 左移八位 或
   receive_data_.yaw_veloctiy = (receive_buff_[13] << 8) | receive_buff_[12];
-  receive_data_.yaw_veloctiy = (receive_buff_[15] << 8) | receive_buff_[14];
+  receive_data_.pitch_veloctiy = (receive_buff_[15] << 8) | receive_buff_[14];
   // for (size_t i = 0; i != sizeof(receive_data_.Receive_Yaw_Velocity_Info.arr_yaw_velocity); ++i) {
   //   receive_data_.Receive_Yaw_Velocity_Info.arr_yaw_velocity[i] = receive_buff_[i + 10];
   // }
