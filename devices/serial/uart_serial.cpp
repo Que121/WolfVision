@@ -166,37 +166,40 @@ void SerialPort::receiveData() {
  *  12:     'E'
  */
 void SerialPort::writeData(const int& _yaw, const int16_t& yaw, const int& _pitch, const int16_t& pitch, const int16_t& depth, const int& data_type, const int& is_shooting) {
-  
   // 获取 CRC 对象的数据
   getDataForCRC(data_type, is_shooting, _yaw, yaw, _pitch, pitch, depth);
-  
-  // 
+
+  //
   uint8_t CRC = checksumCRC(crc_buff_, sizeof(crc_buff_));
-  
+
   getDataForSend(data_type, is_shooting, _yaw, yaw, _pitch, pitch, depth, CRC);
-  
+
   // 发送数据
   write_message_ = write(fd, write_buff_, sizeof(write_buff_));
-  
+
   // 打印串口输出信息
   if (serial_config_.show_serial_information == 1) {
-    yaw_reduction_   = mergeIntoBytes(write_buff_[5], write_buff_[4]);
-    pitch_reduction_ = mergeIntoBytes(write_buff_[8], write_buff_[7]);
-    depth_reduction_ = mergeIntoBytes(write_buff_[10], write_buff_[9]);
+    // yaw_reduction_   = mergeIntoBytes(write_buff_[5], write_buff_[4]);
+    // pitch_reduction_ = mergeIntoBytes(write_buff_[8], write_buff_[7]);
+    // depth_reduction_ = mergeIntoBytes(write_buff_[10], write_buff_[9]);
 
     fmt::print("[{}] writeData() ->", idntifier_green);
-    for (size_t i = 0; i != 4; ++i) {
-      fmt::print(" {}", write_buff_[i]);
+    for (size_t i = 0; i < sizeof(write_buff_); i++) {
+      printf("%x ", write_buff_[i]);
     }
-    fmt::print(" {} {} {} {}", static_cast<float>(yaw_reduction_) / 100, static_cast<int>(write_buff_[6]), static_cast<float>(pitch_reduction_) / 100, static_cast<float>(depth_reduction_));
-    for (size_t i = 11; i != 12; ++i) {
-      fmt::print(" {}", write_buff_[i]);
-    }
-    fmt::print("\n");
 
-    yaw_reduction_   = 0x0000;
-    pitch_reduction_ = 0x0000;
-    depth_reduction_ = 0x0000;
+    // for (size_t i = 0; i != 4; ++i) {
+    //   fmt::print(" {}", write_buff_[i]);
+    // }
+    // fmt::print(" {} {} {} {}", static_cast<float>(yaw_reduction_) / 100, static_cast<int>(write_buff_[6]), static_cast<float>(pitch_reduction_) / 100, static_cast<float>(depth_reduction_));
+    // for (size_t i = 11; i != 12; ++i) {
+    //   fmt::print(" {}", write_buff_[i]);
+    // }
+    // fmt::print("\n");
+
+    // yaw_reduction_   = 0x0000;
+    // pitch_reduction_ = 0x0000;
+    // depth_reduction_ = 0x0000;
   }
 }
 
@@ -212,6 +215,19 @@ void SerialPort::writeData(const Write_Data& _write_data) {
 
   writeData(write_data_.symbol_yaw, write_data_.yaw_angle, write_data_.symbol_pitch, write_data_.pitch_angle, write_data_.depth, write_data_.data_type, write_data_.is_shooting);
 }
+
+// 电控测试
+// void SerialPort::writeData(const Write_Data& _write_data) {
+//   write_data_.data_type    = 0;
+//   write_data_.is_shooting  = 0;
+//   write_data_.symbol_yaw   = 1;
+//   write_data_.yaw_angle    = 32;
+//   write_data_.symbol_pitch = 1;
+//   write_data_.pitch_angle  = 47;
+//   write_data_.depth        = 10;
+
+//   writeData(write_data_.symbol_yaw, write_data_.yaw_angle, write_data_.symbol_pitch, write_data_.pitch_angle, write_data_.depth, write_data_.data_type, write_data_.is_shooting);
+// }
 
 void SerialPort::writeData() {
   writeData(write_data_.symbol_yaw, write_data_.yaw_angle, write_data_.symbol_pitch, write_data_.pitch_angle, write_data_.depth, write_data_.data_type, write_data_.is_shooting);
@@ -269,16 +285,16 @@ void SerialPort::getDataForCRC(const int& data_type, const int& is_shooting, con
 
 void SerialPort::getDataForSend(const int& data_type, const int& is_shooting, const int& _yaw, const int16_t& yaw, const int& _pitch, const int16_t& pitch, const int16_t& depth, const uint8_t& CRC) {
   write_buff_[0]  = 0x53;
-  write_buff_[1]  = static_cast<unsigned char>(data_type);
-  write_buff_[2]  = static_cast<unsigned char>(is_shooting);
-  write_buff_[3]  = static_cast<unsigned char>(_yaw);
+  write_buff_[1]  = static_cast<unsigned char>(data_type);    // 是否发现目标  1为发现 0为未发现
+  write_buff_[2]  = static_cast<unsigned char>(is_shooting);  // 是否射击   1为射击 0为射击 单发
+  write_buff_[3]  = static_cast<unsigned char>(_yaw);         // yaw符号
   write_buff_[4]  = returnLowBit(yaw);
   write_buff_[5]  = returnHighBit(yaw);
-  write_buff_[6]  = static_cast<unsigned char>(_pitch);
+  write_buff_[6]  = static_cast<unsigned char>(_pitch);  // pitch符号
   write_buff_[7]  = returnLowBit(pitch);
   write_buff_[8]  = returnHighBit(pitch);
-  write_buff_[9]  = returnLowBit(depth);
-  write_buff_[10] = returnHighBit(depth);
+  write_buff_[9]  = returnLowBit(depth);   // 最终打击目标的深度信息（预测点） 低八位
+  write_buff_[10] = returnHighBit(depth);  // 最终打击目标的深度信息（预测点） 高八位
   write_buff_[11] = CRC & 0xff;
   write_buff_[12] = 0x45;
 }

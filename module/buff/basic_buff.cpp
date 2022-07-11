@@ -1,13 +1,3 @@
-/**
- * @file basic_buff.cpp
- * @author WCJ (1767851382@qq.com)
- * @brief 能量机关
- * @date 2021-08-24
- * 
- * @copyright Copyright (c) 2021 GUCROBOT_WOLF
- * 
- */
-
 #include "basic_buff.hpp"
 
 namespace basic_buff {
@@ -195,7 +185,8 @@ uart::Write_Data Detector::runTask(cv::Mat& _input_img, const uart::Receive_Data
     send_info.yaw_angle   = buff_pnp_.returnYawAngle() + buff_config_.param.OFFSET_ARMOR_YAW;
     send_info.pitch_angle = buff_pnp_.returnPitchAngle() + buff_config_.param.OFFSET_ARMOR_PITCH;
 #endif  // DEBUG_MANUAL
-
+   
+    
     send_info.depth     = final_target_z_;
     send_info.data_type = is_find_target_;
 
@@ -214,6 +205,7 @@ uart::Write_Data Detector::runTask(cv::Mat& _input_img, const uart::Receive_Data
   return send_info;
 }
 
+// 读入xml文件配置
 void Detector::readBuffConfig(const cv::FileStorage& _fs) {
   // ctrl
   _fs["IS_SHOW_BIN_IMG"] >> buff_config_.ctrl.IS_SHOW_BIN_IMG;
