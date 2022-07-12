@@ -10,14 +10,14 @@
   - 2 Alpha
   记得调整原参数
   -->
-  <IS_PARAM_ADJUSTMENT>0</IS_PARAM_ADJUSTMENT>
+  <IS_PARAM_ADJUSTMENT>1</IS_PARAM_ADJUSTMENT>
 
   <!-- 
   IS_SHOW_BIN_IMG - 是否显示二值图像
   - 0 不显示
   - 1 显示
   -->
-  <IS_SHOW_BIN_IMG>1</IS_SHOW_BIN_IMG>
+  <IS_SHOW_BIN_IMG>0</IS_SHOW_BIN_IMG>
 
   <!--
   PROCESSING_MODE - 设置自瞄预处理的处理模式

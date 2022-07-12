@@ -24,7 +24,7 @@ int main() {
     fmt::format("{}{}", CONFIG_FILE_PATH, "/buff/basic_buff_config.xml"));
 
   basic_pnp::PnP pnp_ = basic_pnp::PnP(
-    fmt::format("{}{}", CONFIG_FILE_PATH, "/camera/MV-LD-4-4M-G.xml"), fmt::format("{}{}", CONFIG_FILE_PATH, "/angle_solve/basic_pnp_config.xml"));
+    fmt::format("{}{}", CONFIG_FILE_PATH, "/camera/MV-LD-6-4M-G.xml"), fmt::format("{}{}", CONFIG_FILE_PATH, "/angle_solve/basic_pnp_config.xml"));
 
   onnx_inferring::model model_ = onnx_inferring::model(
     fmt::format("{}{}", SOURCE_PATH, "/module/ml/mnist-8.onnx"));
@@ -64,7 +64,7 @@ int main() {
 
       serial_.printReceiveInformation();
    
-      switch (serial_.returnReceiveMode()) {
+      switch (2) {
       // 基础自瞄模式
       case uart::SUP_SHOOT:
         if (basic_armor_.runBasicArmor(src_img_, serial_.returnReceive())) {
